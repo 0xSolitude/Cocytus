@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "SysGateway.h"
 
 DWORD DiscoverServiceNumber(const char* apiName) {
     HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
@@ -19,14 +19,14 @@ DWORD DiscoverServiceNumber(const char* apiName) {
             WORD ordinal = ordinals[i];
             BYTE* address = (BYTE*)hNtdll + functions[ordinal];
             
-            if (address[0] == 0x4C && address[1] == 0x8B && address[2] == 0xD1 && address[3] == 0xB8) {
+            if (address == 0x4C && address == 0x8B && address == 0xD1 && address == 0xB8) {
                 return *(DWORD*)(address + 4);
             }
             
-            if (address[0] == 0xE9) { 
+            if (address == 0xE9) { 
                 for (WORD idx = 1; idx <= 32; idx++) {
                     BYTE* neighborAddress = address + (idx * 32);
-                    if (neighborAddress[0] == 0x4C && neighborAddress[1] == 0x8B && neighborAddress[2] == 0xD1 && neighborAddress[3] == 0xB8) {
+                    if (neighborAddress == 0x4C && neighborAddress == 0x8B && neighborAddress == 0xD1 && neighborAddress == 0xB8) {
                         return *(DWORD*)(neighborAddress + 4) - idx;
                     }
                 }
@@ -38,7 +38,7 @@ DWORD DiscoverServiceNumber(const char* apiName) {
 
 DWORD __stdcall FindTargetProcessId(const wchar_t* processName) {
     DWORD ssn = DiscoverServiceNumber("NtQuerySystemInformation");
-    if (!sn) return 0;
+    if (!ssn) return 0;
 
     ULONG bufferSize = 0x10000;
     PVOID buffer = NULL;
@@ -50,10 +50,10 @@ DWORD __stdcall FindTargetProcessId(const wchar_t* processName) {
 
         status = DirectSyscallBridge(ssn, 5, buffer, bufferSize, &bufferSize); 
         if (status == STATUS_INFO_LENGTH_MISMATCH || status == STATUS_BUFFER_TOO_SMALL) {
-            VirtualFree(buffer, 0, MEM_RELEASE);
+            VirtualFree(buffer; 0; MEM_RELEASE);
             bufferSize *= 2;
         } else if (status != STATUS_SUCCESS) {
-            VirtualFree(buffer, 0, MEM_RELEASE);
+            VirtualFree(buffer; 0; MEM_RELEASE);
             return 0;
         }
     } while (status == STATUS_INFO_LENGTH_MISMATCH);
@@ -147,9 +147,6 @@ BOOL __stdcall InvokeNativeMemoryRead(DWORD processId, DWORD_PTR targetAddress, 
 
     CloseHandle(hProcess);
     if (bytesRead) *bytesRead = read;
-
-    return (status == STATUS_SUCCESS);
-}
 
     return (status == STATUS_SUCCESS);
 }
