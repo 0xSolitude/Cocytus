@@ -6,10 +6,8 @@
 #define STATUS_INFO_LENGTH_MISMATCH ((NTSTATUS)0xC0000004L)
 #define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
 
-// Raw Assembly Linker Declarations
 extern "C" NTSTATUS DirectSyscallBridge(DWORD ssn, ...);
 
-// Hidden Internal Windows Structures for Process Enumeration
 typedef struct _UNICODE_STRING {
     USHORT Length;
     USHORT MaximumLength;
@@ -53,7 +51,6 @@ typedef struct _SYSTEM_PROCESS_INFORMATION {
     LARGE_INTEGER OtherTransferCount;
 } SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
 
-// High-Performance Multi-Language Export Declarations
 extern "C" {
     __declspec(dllexport) BOOL __stdcall InvokeNativeAllocation(DWORD processId, DWORD_PTR* outAddress, SIZE_T size, DWORD protect);
     __declspec(dllexport) BOOL __stdcall InvokeNativeMemoryWrite(DWORD processId, DWORD_PTR targetAddress, PVOID localBuffer, SIZE_T size, SIZE_T* bytesWritten);
